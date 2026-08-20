@@ -22,11 +22,11 @@ jobs:
         image:
           # from https://flutter.dev/docs/development/tools/sdk/releases
           - DOCKER_TAG: latest
-            FLUTTER_VERSION: 3.44.0
+            FLUTTER_VERSION: 3.44.8
           - DOCKER_TAG: stable
-            FLUTTER_VERSION: 3.44.0
+            FLUTTER_VERSION: 3.44.8
           - DOCKER_TAG: beta
-            FLUTTER_VERSION: 3.44.0-0.3.pre
+            FLUTTER_VERSION: 3.47.0-0.4.pre
     steps:
       - uses: actions/checkout@v6
 
