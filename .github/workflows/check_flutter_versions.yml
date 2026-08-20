@@ -46,3 +46,4 @@ jobs:
           commit-message: "chore: Update Flutter to ${{ steps.flutter_versions.outputs.stable_version }} (stable), ${{ steps.flutter_versions.outputs.beta_version }} (beta)"
           title: "chore: Update Flutter to ${{ steps.flutter_versions.outputs.stable_version }} (stable), ${{ steps.flutter_versions.outputs.beta_version }} (beta)"
           branch: "chore/update-flutter-version"
+          reviewers: mihaiborcansst
