@@ -35,6 +35,6 @@ beta
 
 ## Version Updates
 
-The Flutter version matrix lives in `.github/workflows/publish.yml`.
+The Flutter version matrix lives in `versions.yml`.
 
 `.github/workflows/check_flutter_versions.yml` runs `scripts/update_flutter_versions.sh` on a schedule and opens a pull request when Flutter stable or beta changes.

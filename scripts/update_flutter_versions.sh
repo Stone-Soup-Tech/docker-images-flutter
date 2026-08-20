@@ -2,19 +2,19 @@
 set -e
 
 # This script fetches the latest versions of the stable and beta Flutter channels
-# and edits the GitHub Actions publish workflow with those versions.
+# and edits versions.yml with those versions.
 
 releases_json=$(curl -s https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json)
 
-# This function edits the publish workflow with the given Flutter version for the given Docker tag.
-edit_publish_workflow_for_tag() {
-    publish_workflow=".github/workflows/publish.yml"
+# This function edits versions.yml with the given Flutter version for the given Docker tag.
+edit_versions_file_for_tag() {
+    versions_file="versions.yml"
     docker_tag=$1
     version=$2
 
     # env for yq
     docker_tag=$docker_tag version=$version \
-        yq -i '(.jobs.publish.strategy.matrix.image[] | select(.DOCKER_TAG == env(docker_tag)) | .FLUTTER_VERSION) = env(version)' $publish_workflow
+        yq -i '(.images[] | select(.docker_tag == env(docker_tag)) | .flutter_version) = env(version)' $versions_file
 }
 
 # This function fetches the latest version of a particular channel (stable, beta) for Flutter
@@ -41,8 +41,8 @@ beta_version=$(get_latest_version_in_channel "beta")
 echo "Latest beta version: $beta_version"
 echo "Latest stable version: $stable_version"
 
-edit_publish_workflow_for_tag "stable" "$stable_version"
-edit_publish_workflow_for_tag "latest" "$stable_version"
-edit_publish_workflow_for_tag "beta" "$beta_version"
+edit_versions_file_for_tag "stable" "$stable_version"
+edit_versions_file_for_tag "latest" "$stable_version"
+edit_versions_file_for_tag "beta" "$beta_version"
 
 exit 0

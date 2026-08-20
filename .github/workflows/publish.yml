@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - sdk/**
+      - versions.yml
       - .github/workflows/publish.yml
   workflow_dispatch:
 
@@ -14,19 +15,26 @@ permissions:
   packages: write
 
 jobs:
+  matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      images: ${{ steps.matrix.outputs.images }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Read Flutter image matrix
+        id: matrix
+        run: |
+          images=$(ruby -ryaml -rjson -e "puts JSON.generate(YAML.load_file('versions.yml')['images'])")
+          echo "images=$images" >> "$GITHUB_OUTPUT"
+
   publish:
+    needs: matrix
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        image:
-          # from https://flutter.dev/docs/development/tools/sdk/releases
-          - DOCKER_TAG: latest
-            FLUTTER_VERSION: 3.44.8
-          - DOCKER_TAG: stable
-            FLUTTER_VERSION: 3.44.8
-          - DOCKER_TAG: beta
-            FLUTTER_VERSION: 3.47.0-0.4.pre
+        image: ${{ fromJson(needs.matrix.outputs.images) }}
     steps:
       - uses: actions/checkout@v6
 
@@ -45,8 +53,8 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
         env:
-          DOCKER_TAG: ${{ matrix.image.DOCKER_TAG }}
-          FLUTTER_VERSION: ${{ matrix.image.FLUTTER_VERSION }}
+          DOCKER_TAG: ${{ matrix.image.docker_tag }}
+          FLUTTER_VERSION: ${{ matrix.image.flutter_version }}
 
       - uses: docker/setup-buildx-action@v4
 
@@ -65,4 +73,4 @@ jobs:
           push: true
           tags: ${{ steps.tags.outputs.tags }}
           build-args: |
-            flutter_version=${{ matrix.image.FLUTTER_VERSION }}
+            flutter_version=${{ matrix.image.flutter_version }}
