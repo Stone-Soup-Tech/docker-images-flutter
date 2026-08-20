@@ -41,16 +41,8 @@ jobs:
       # Create a Pull Request if there are any changes.
       # This is automatically checked internally
       - name: Create Pull Request
-        id: create_pull_request
         uses: peter-evans/create-pull-request@v8
         with:
           commit-message: "chore: Update Flutter to ${{ steps.flutter_versions.outputs.stable_version }} (stable), ${{ steps.flutter_versions.outputs.beta_version }} (beta)"
           title: "chore: Update Flutter to ${{ steps.flutter_versions.outputs.stable_version }} (stable), ${{ steps.flutter_versions.outputs.beta_version }} (beta)"
           branch: "chore/update-flutter-version"
-
-      - name: Enable auto-merge
-        if: steps.create_pull_request.outputs.pull-request-number
-        run: gh pr merge --auto --squash "$PR_NUMBER"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ steps.create_pull_request.outputs.pull-request-number }}
