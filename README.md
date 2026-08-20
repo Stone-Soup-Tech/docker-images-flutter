@@ -15,7 +15,11 @@ The example above simply mount current working directory and runs `flutter test`
 
 ## GitHub Container Registry
 
-https://github.com/cirruslabs/docker-images-flutter/pkgs/container/flutter
+Images are published by GitHub Actions to:
+
+```text
+ghcr.io/stone-soup-tech/flutter
+```
 
 [build_badge]: https://api.cirrus-ci.com/github/cirruslabs/docker-images-flutter.svg
 [build_link]: https://cirrus-ci.com/github/cirruslabs/docker-images-flutter
