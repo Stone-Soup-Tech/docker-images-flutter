@@ -91,7 +91,6 @@ jobs:
           FORCE_REBUILD: ${{ inputs.force_rebuild == true }}
           IMAGE: ${{ steps.tags.outputs.image }}
           VERSION_TAG: ${{ steps.tags.outputs.version_tag }}
-          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [[ "$FORCE_REBUILD" == "true" ]]; then
             echo "A forced rebuild was requested."
@@ -99,52 +98,29 @@ jobs:
             exit 0
           fi
 
-          image_path="${IMAGE#ghcr.io/}"
-          version_tag="$VERSION_TAG"
-          manifest_url="https://ghcr.io/v2/$image_path/manifests/$version_tag"
           max_attempts=3
 
           for attempt in $(seq 1 "$max_attempts"); do
-            http_status="$(
-              curl --silent --show-error --location --head \
-                --connect-timeout 10 \
-                --max-time 30 \
-                --user "${GITHUB_ACTOR}:${REGISTRY_TOKEN}" \
-                --header 'Accept: application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.list.v2+json, application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.v2+json' \
-                --output /dev/null \
-                --write-out '%{http_code}' \
-                "$manifest_url"
-            )" || http_status=000
+            if inspect_output="$(docker buildx imagetools inspect "$IMAGE:$VERSION_TAG" 2>&1)"; then
+              echo "Image $VERSION_TAG already exists on GHCR; skipping the build."
+              echo "should_build=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
 
-            case "$http_status" in
-              200)
-                echo "Image $version_tag already exists on GHCR; skipping the build."
-                echo "should_build=false" >> "$GITHUB_OUTPUT"
-                exit 0
-                ;;
-              404)
-                echo "Image $version_tag does not exist on GHCR; building it."
-                echo "should_build=true" >> "$GITHUB_OUTPUT"
-                exit 0
-                ;;
-              401|403)
-                echo "::error::GHCR rejected the image existence check with HTTP $http_status."
-                exit 1
-                ;;
-              000|408|429|5??)
-                if [[ "$attempt" -lt "$max_attempts" ]]; then
-                  echo "GHCR returned HTTP $http_status; retrying ($attempt/$max_attempts)."
-                  sleep $((attempt * 5))
-                else
-                  echo "::error::Unable to determine whether $version_tag exists on GHCR after $max_attempts attempts (HTTP $http_status)."
-                  exit 1
-                fi
-                ;;
-              *)
-                echo "::error::Unexpected HTTP status $http_status while checking $version_tag on GHCR."
-                exit 1
-                ;;
-            esac
+            if grep -Eiq 'not found|manifest unknown|no such manifest' <<< "$inspect_output"; then
+              echo "Image $VERSION_TAG does not exist on GHCR; building it."
+              echo "should_build=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            if [[ "$attempt" -lt "$max_attempts" ]]; then
+              echo "Unable to inspect $VERSION_TAG on GHCR; retrying ($attempt/$max_attempts)."
+              sleep $((attempt * 5))
+            else
+              echo "::error::Unable to determine whether $VERSION_TAG exists on GHCR after $max_attempts attempts."
+              echo "$inspect_output"
+              exit 1
+            fi
           done
 
       - name: Build and push
