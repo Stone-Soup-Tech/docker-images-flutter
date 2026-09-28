@@ -1,4 +1,4 @@
-FROM ghcr.io/cirruslabs/android-sdk:36
+FROM ghcr.io/stone-soup-tech/android-sdk:36
 
 LABEL org.opencontainers.image.source=https://github.com/Stone-Soup-Tech/docker-images-flutter
 USER root
