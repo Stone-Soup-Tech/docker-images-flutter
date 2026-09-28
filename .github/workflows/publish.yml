@@ -128,7 +128,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: sdk
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           push: true
           tags: ${{ steps.tags.outputs.tags }}
           no-cache: ${{ inputs.force_rebuild == true }}
