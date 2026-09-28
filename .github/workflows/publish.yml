@@ -26,7 +26,7 @@ jobs:
     outputs:
       images: ${{ steps.matrix.outputs.images }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Read and group Flutter image matrix
         id: matrix
@@ -54,7 +54,7 @@ jobs:
       matrix:
         image: ${{ fromJson(needs.matrix.outputs.images) }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Set image tags
         id: tags
